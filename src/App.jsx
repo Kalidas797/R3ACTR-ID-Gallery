@@ -6,6 +6,7 @@ import './App.css';
 // EDIT THIS CONSTANT TO CHANGE YOUR ID CARD IMAGE
 // Both .png and .svg are fully supported! (For SVG, ensure it has width/height attributes in the file)
 const ID_CARD_IMAGE = "/Neeraj_ID.png";
+const LANYARD_IMAGE = "/g458.svg";
 
 function App() {
   const [isMobile, setIsMobile] = useState(false);
@@ -29,6 +30,7 @@ function App() {
         position={[0, 0, isMobile ? 19 : 10]} // Dynamic zoom: slightly further back on mobile so it fits the narrow screen
         gravity={[0, -40, 0]}
         frontImage={ID_CARD_IMAGE}
+        lanyardImage={LANYARD_IMAGE}
         imageFit="fill" // Stretches the image to fit perfectly without trimming or leaving edges
         lanyardWidth={1}
       />

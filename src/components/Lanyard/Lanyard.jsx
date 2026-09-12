@@ -121,7 +121,44 @@ function Band({
     dir = new THREE.Vector3();
   const segmentProps = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 4, linearDamping: 4 };
   const { nodes, materials } = useGLTF(cardGLB);
-  const texture = useTexture(lanyardImage || lanyard);
+  const rawLanyardTexture = useTexture(lanyardImage || lanyard);
+  
+  const texture = useMemo(() => {
+    if (!rawLanyardTexture.image || !lanyardImage) return rawLanyardTexture;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 2048;
+    canvas.height = 2048;
+    const ctx = canvas.getContext('2d');
+    
+    // Fill background with black so the white logo is visible
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, 2048, 2048);
+    
+    ctx.translate(1024, 1024);
+    // Logo kept vertical (unrotated)
+    
+    const img = rawLanyardTexture.image;
+    const imgW = img.width || 2048;
+    const imgH = img.height || 2048;
+    
+    const paddingScale = 0.8; // 80% of the strap width for maximum size and legibility
+    const maxDim = Math.max(imgW, imgH);
+    const scale = (2048 / maxDim) * paddingScale;
+    
+    const drawW = imgW * scale;
+    const drawH = imgH * scale;
+    
+    ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+    
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.anisotropy = 16; // CRITICAL: Prevents logo from blurring when viewed at sharp angles
+    tex.needsUpdate = true;
+    return tex;
+  }, [rawLanyardTexture.image, lanyardImage]);
+
   // useTexture must be called unconditionally; use a blank pixel when an image
   // isn't supplied for a given face, then skip compositing it below.
   const frontTex = useTexture(frontImage || BLANK_PIXEL);
