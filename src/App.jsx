@@ -27,7 +27,7 @@ function App() {
 
       {/* 3D Lanyard section */}
       <Lanyard
-        position={[0, 0, isMobile ? 19 : 10]} // Dynamic zoom: slightly further back on mobile so it fits the narrow screen
+        position={[0, 0, isMobile ? 13 : 10]} // Dynamic zoom: 13 on mobile to make card take up 3/4 screen
         gravity={[0, -40, 0]}
         frontImage={ID_CARD_IMAGE}
         lanyardImage={LANYARD_IMAGE}

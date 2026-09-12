@@ -39,18 +39,19 @@
 
 .social-links {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem; /* Reduced for mobile to save vertical space */
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
   width: 100%;
-  max-width: 320px;
 }
 
 .social-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 0.75rem 1.5rem; /* Slightly thinner button on mobile */
+  gap: 0;
+  padding: 0.75rem; /* Square-ish button on mobile */
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -94,6 +95,7 @@
 }
 
 .social-label {
+  display: none; /* Hidden on mobile */
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.1em;
@@ -122,5 +124,10 @@
   
   .social-button {
     padding: 1rem 1.5rem;
+    gap: 1rem;
+  }
+
+  .social-label {
+    display: block; /* Show text on desktop */
   }
 }
