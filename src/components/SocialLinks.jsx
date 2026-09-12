@@ -36,8 +36,8 @@ const SocialLinks = () => {
           <a
             key={platform}
             href={url}
-            target="_blank"
-            rel="noopener noreferrer"
+            target={url.startsWith('mailto:') ? undefined : "_blank"}
+            rel={url.startsWith('mailto:') ? undefined : "noopener noreferrer"}
             className="social-button"
             aria-label={`Connect on ${labelMap[platform]}`}
           >

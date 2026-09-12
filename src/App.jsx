@@ -20,7 +20,7 @@ function App() {
 
       {/* 3D Lanyard section */}
       <Lanyard
-        position={[0, 0, 24]}
+        position={[0, 0, isMobile ? 19 : 12]} // Dynamic zoom: slightly further back on mobile so it fits the narrow screen
         gravity={[0, -40, 0]}
         frontImage="/id-card.png"
         imageFit="contain" // Using contain to not crop the ID card image

@@ -1,11 +1,11 @@
 export const profile = {
-  name: "MEMBER NAME",
-  role: "R.3.A.C.T.R MEMBER",
+  name: "NEERAJ SUKUMARAN",
+  role: "COFOUNDER",
   socials: {
-    linkedin: "https://linkedin.com/",
-    instagram: "https://instagram.com/",
-    github: "https://github.com/",
+    linkedin: "https://www.linkedin.com/in/neeraj-sukumaran-27b6122a1",
+    instagram: "https://www.instagram.com/neer_aj_2303?stkn=MXZwdDRnOGx2Y3dpYQ==",
+    github: "https://github.com/Neeraj2303",
     portfolio: null,
-    email: null
+    email: "mailto:neerajofficial1133@gmail.com"
   }
 }
