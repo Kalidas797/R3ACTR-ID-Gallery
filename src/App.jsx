@@ -5,7 +5,7 @@ import './App.css';
 
 // EDIT THIS CONSTANT TO CHANGE YOUR ID CARD IMAGE
 // Both .png and .svg are fully supported! (For SVG, ensure it has width/height attributes in the file)
-const ID_CARD_IMAGE = "/g483.svg";
+const ID_CARD_IMAGE = "/id-card.png";
 
 function App() {
   const [isMobile, setIsMobile] = useState(false);
