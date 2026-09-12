@@ -127,8 +127,17 @@ function Band({
   const frontTex = useTexture(frontImage || BLANK_PIXEL);
   const backTex = useTexture(backImage || BLANK_PIXEL);
 
-  // Composite the front/back images into the card's texture atlas (front = left
-  // half, back = right half). Each image is drawn aspect-preserving (no stretch).
+  const [aspectScale, setAspectScale] = useState(1);
+
+  useEffect(() => {
+    if (frontTex.image && frontTex.image.width && frontTex.image.height) {
+      const imgAspect = frontTex.image.width / frontTex.image.height;
+      const uvAspect = 0.5 / 0.755; // From FRONT_UV_RECT width/height
+      setAspectScale(uvAspect / imgAspect);
+    }
+  }, [frontTex.image]);
+
+  // Composite the front/back images into the card's texture atlas
   const cardMap = useMemo(() => {
     const baseMap = materials.base.map;
     if (!frontImage && !backImage) return baseMap;
@@ -141,7 +150,6 @@ function Band({
     canvas.height = H;
     const ctx = canvas.getContext('2d');
     if (!ctx) return baseMap;
-    // Keep the original baked atlas for the card edges and any untouched face.
     ctx.drawImage(baseImg, 0, 0, W, H);
 
     const drawFitted = (img, rect) => {
@@ -149,6 +157,17 @@ function Band({
       const ry = rect.y * H;
       const rw = rect.w * W;
       const rh = rect.h * H;
+      
+      if (imageFit === 'fill') {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(rx, ry, rw, rh);
+        ctx.clip();
+        ctx.drawImage(img, rx, ry, rw, rh);
+        ctx.restore();
+        return;
+      }
+
       const pick = imageFit === 'contain' ? Math.min : Math.max;
       const scale = pick(rw / img.width, rh / img.height);
       const dw = img.width * scale;
@@ -240,9 +259,9 @@ function Band({
           <BallCollider args={[0.1]} />
         </RigidBody>
         <RigidBody position={[2, 0, 0]} ref={card} {...segmentProps} type={dragged ? 'kinematicPosition' : 'dynamic'}>
-          <CuboidCollider args={[0.8, 1.125, 0.01]} />
+          <CuboidCollider args={[0.8, 1.125 * aspectScale, 0.01]} position={[0, -1.125 * (aspectScale - 1), 0]} />
           <group
-            scale={2.25}
+            scale={[2.25, 2.25 * aspectScale, 2.25]}
             position={[0, -1.2, -0.05]}
             onPointerOver={() => hover(true)}
             onPointerOut={() => hover(false)}
