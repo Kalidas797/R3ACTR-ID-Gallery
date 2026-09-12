@@ -9,16 +9,20 @@
 
 /* ── Brand header ─────────────────────────────────────────────────────────── */
 .brand-header {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 1.5rem 1rem 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: 0.3em;
-  color: rgba(255, 255, 255, 0.9);
-  text-transform: uppercase;
   z-index: 10;
   position: relative;
   flex-shrink: 0;
+}
+
+.brand-logo {
+  height: 40px; /* Adjust this value if the logo should be larger/smaller */
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
 }
 
 /* ── 3D canvas wrapper ────────────────────────────────────────────────────── */
@@ -52,8 +56,6 @@
 /* ── Mobile tweaks ────────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .brand-header {
-    font-size: 0.9rem;
-    letter-spacing: 0.25em;
     padding-top: 1rem;
   }
 }

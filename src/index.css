@@ -24,6 +24,7 @@
 body {
   margin: 0;
   height: 100dvh;
+  /* EDIT THIS URL TO CHANGE YOUR BACKGROUND IMAGE (Both .png and .svg are fully supported!) */
   background-image: url('/id_site_bg.png');
   background-size: cover;
   background-position: center;
