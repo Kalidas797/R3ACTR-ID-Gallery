@@ -52,22 +52,18 @@ export default function Lanyard({
       // gamma is left-to-right tilt in degrees, where right is positive (-90 to 90)
       // beta is front-to-back tilt, where front is positive (-180 to 180)
       
-      // Max gravity multiplier
-      const maxG = 40;
+      // Convert Euler angles (degrees) to radians
+      const betaRad = e.beta * (Math.PI / 180);
+      const gammaRad = e.gamma * (Math.PI / 180);
       
-      // Calculate X gravity based on left/right tilt
-      // Clamp gamma between -90 and 90
-      let gamma = Math.max(-90, Math.min(90, e.gamma));
-      const gx = (gamma / 90) * maxG;
+      const G = 40; // The magnitude of the physics gravity
       
-      // Calculate Z gravity based on forward/back tilt
-      // Assume holding the phone straight up is beta = 90 (Z gravity = 0)
-      // Flat on table is beta = 0 (Z gravity = pushes card "forward" out of screen)
-      let beta = Math.max(0, Math.min(180, e.beta));
-      const gz = ((90 - beta) / 90) * maxG;
+      // Mathematically accurate projection of Earth's gravity vector onto the device's local 3D axes
+      const gx = G * Math.sin(gammaRad);
+      const gy = -G * Math.sin(betaRad) * Math.cos(gammaRad);
+      const gz = -G * Math.cos(betaRad) * Math.cos(gammaRad);
       
-      // Y remains heavily weighted downwards to keep the lanyard hanging
-      setDynamicGravity([gx, gravity[1], gz]);
+      setDynamicGravity([gx, gy, gz]);
     };
     
     window.addEventListener('deviceorientation', handleOrientation, true);
