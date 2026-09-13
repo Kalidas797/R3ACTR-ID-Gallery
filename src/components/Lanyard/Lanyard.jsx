@@ -39,12 +39,44 @@ export default function Lanyard({
   lanyardWidth = 1
 }) {
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [dynamicGravity, setDynamicGravity] = useState(gravity);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+    
+    // Device orientation for real-world physics!
+    const handleOrientation = (e) => {
+      if (e.gamma === null || e.beta === null) return;
+      
+      // gamma is left-to-right tilt in degrees, where right is positive (-90 to 90)
+      // beta is front-to-back tilt, where front is positive (-180 to 180)
+      
+      // Max gravity multiplier
+      const maxG = 40;
+      
+      // Calculate X gravity based on left/right tilt
+      // Clamp gamma between -90 and 90
+      let gamma = Math.max(-90, Math.min(90, e.gamma));
+      const gx = (gamma / 90) * maxG;
+      
+      // Calculate Z gravity based on forward/back tilt
+      // Assume holding the phone straight up is beta = 90 (Z gravity = 0)
+      // Flat on table is beta = 0 (Z gravity = pushes card "forward" out of screen)
+      let beta = Math.max(0, Math.min(180, e.beta));
+      const gz = ((90 - beta) / 90) * maxG;
+      
+      // Y remains heavily weighted downwards to keep the lanyard hanging
+      setDynamicGravity([gx, gravity[1], gz]);
+    };
+    
+    window.addEventListener('deviceorientation', handleOrientation, true);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('deviceorientation', handleOrientation, true);
+    };
+  }, [gravity]);
 
   return (
     <div className="lanyard-wrapper">
@@ -55,7 +87,7 @@ export default function Lanyard({
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
       >
         <ambientLight intensity={Math.PI} />
-        <Physics gravity={gravity} timeStep={isMobile ? 1 / 30 : 1 / 60}>
+        <Physics gravity={dynamicGravity} timeStep={isMobile ? 1 / 30 : 1 / 60}>
           <Band
             isMobile={isMobile}
             frontImage={frontImage}
@@ -119,42 +151,48 @@ function Band({
     ang = new THREE.Vector3(),
     rot = new THREE.Vector3(),
     dir = new THREE.Vector3();
-  const segmentProps = { type: 'dynamic', canSleep: true, colliders: false, angularDamping: 4, linearDamping: 4 };
+  const segmentProps = { type: 'dynamic', canSleep: false, colliders: false, angularDamping: 4, linearDamping: 4 };
   const { nodes, materials } = useGLTF(cardGLB);
   const rawLanyardTexture = useTexture(lanyardImage || lanyard);
   
   const texture = useMemo(() => {
     if (!rawLanyardTexture.image || !lanyardImage) return rawLanyardTexture;
     
+    // Use a very high resolution canvas (2048) so small text stays crisp
+    const CANVAS_SIZE = 2048;
     const canvas = document.createElement('canvas');
-    canvas.width = 2048;
-    canvas.height = 2048;
+    canvas.width = CANVAS_SIZE;
+    canvas.height = CANVAS_SIZE;
     const ctx = canvas.getContext('2d');
     
     // Fill background with black so the white logo is visible
     ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, 2048, 2048);
+    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     
-    ctx.translate(1024, 1024);
+    ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
     // Logo kept vertical (unrotated)
     
     const img = rawLanyardTexture.image;
-    const imgW = img.width || 2048;
-    const imgH = img.height || 2048;
+    const imgW = img.width || CANVAS_SIZE;
+    const imgH = img.height || CANVAS_SIZE;
     
-    const paddingScale = 0.8; // 80% of the strap width for maximum size and legibility
+    const paddingScale = 0.5; // Slightly larger (50%) to improve legibility
     const maxDim = Math.max(imgW, imgH);
-    const scale = (2048 / maxDim) * paddingScale;
+    const scale = (CANVAS_SIZE / maxDim) * paddingScale;
     
     const drawW = imgW * scale;
     const drawH = imgH * scale;
+    
+    // Use high quality image smoothing
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     
     ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
     
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.anisotropy = 16; // CRITICAL: Prevents logo from blurring when viewed at sharp angles
+    tex.anisotropy = 16; // Extremely important for textures viewed at grazing angles (like a swinging strap)
     tex.needsUpdate = true;
     return tex;
   }, [rawLanyardTexture.image, lanyardImage]);
@@ -180,13 +218,21 @@ function Band({
     if (!frontImage && !backImage) return baseMap;
 
     const baseImg = baseMap.image;
-    const W = baseImg.width;
-    const H = baseImg.height;
+    // The base model texture might be low res. We multiply the canvas size 
+    // by 4 to ensure the user's custom PNG stays incredibly crisp!
+    const RESOLUTION_SCALE = 4; 
+    const W = baseImg.width * RESOLUTION_SCALE;
+    const H = baseImg.height * RESOLUTION_SCALE;
+    
     const canvas = document.createElement('canvas');
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext('2d');
     if (!ctx) return baseMap;
+    
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    
     ctx.drawImage(baseImg, 0, 0, W, H);
 
     const drawFitted = (img, rect) => {
